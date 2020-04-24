@@ -4,5 +4,5 @@
 A web page where you can explore covid-19 data and play with disease spread simulations.
 
 ## Authors
-Robin Nelson
+Robin Nelson\
 Kyler Nelson
