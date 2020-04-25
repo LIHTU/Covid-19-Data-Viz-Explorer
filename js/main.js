@@ -18,7 +18,7 @@ request.onreadystatechange = function(){
             datArr[i]=datArr[i].split(',')
 
         sortByCol(datArr,1)
-        regionData = regionSearch(datArr,'Washington',1)
+        regionData = regionParse(datArr,'Washington',1)
         weeklyNewCases()
         weeklyCaseData.forEach(function(line){
             text+=line+"<br/>"
@@ -28,7 +28,7 @@ request.onreadystatechange = function(){
         document.getElementById("response").innerHTML="Unable to connect to link";
     }
 }
-function regionSearch(arr,term,index){
+function regionParse(arr,term,index){
     newArray = []
     foundTerm = false
     arr.forEach(function(line){
@@ -78,7 +78,7 @@ function weeklyNewCases(){
         }
     }
 
-    for(let i=startDay; i<regionData.length;i++){
+    for(let i=startDay+1; i<regionData.length;i++){
         if(day == 6){ //full week rotation
             day = 0
             previousCases = currentCases;
