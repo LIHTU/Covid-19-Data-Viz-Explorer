@@ -19,7 +19,7 @@ request.onreadystatechange = function(){
 
         sortByCol(datArr,1)
         regionData = regionParse(datArr,'Washington',1)
-        weeklyNewCases()
+        weeklyCases()
         weeklyCaseData.forEach(function(line){
             text+=line+"<br/>"
         })
@@ -28,7 +28,7 @@ request.onreadystatechange = function(){
         document.getElementById("response").innerHTML="Unable to connect to link";
     }
 }
-function regionParse(arr,term,index){
+function regionParse(arr,term,index=1){
     newArray = []
     foundTerm = false
     arr.forEach(function(line){
@@ -36,13 +36,13 @@ function regionParse(arr,term,index){
             newArray.push(line)
             if(foundTerm == false){foundTerm = true}
 
-        }else if(foundTerm == true){ //because the function is sorted by region there is no need to sort every line
+        }else if(foundTerm == true){ //because the function is sorted by region there is no need to search every line
             return;
         }
     })
     return newArray
 }
-function sortByCol(arr, colIndex){
+function sortByCol(arr, colIndex=1){
     arr.sort(sortFunction)
     function sortFunction(a, b) {
         a = a[colIndex]
@@ -51,7 +51,7 @@ function sortByCol(arr, colIndex){
     }
 }
 
-function dailyNewCases(){
+function dailyCases(){
 
     let caseIndex = regionData[0].length-2;
     let previousCases = 0;
@@ -64,43 +64,39 @@ function dailyNewCases(){
     }
     return;
 }
-function weeklyNewCases(){
+function weeklyCases(){
 
     let caseIndex = regionData[0].length-2;
     let previousCases = 0;
     let currentCases = 0;
-    let day = 0;
-    let startDay
-    for(let k = 0; k < 7; k++){
+    let startDay;
+    for(let k = 0; k < 7; k++){ //finds the first saturday of the data set 
         if(new Date(regionData[k][0]).getDay() == 6){
             currentCases = regionData[k][caseIndex];
             startDay = k;
+            break;
         }
     }
 
-    for(let i=startDay+1; i<regionData.length;i++){
-        if(day == 6){ //full week rotation
-            day = 0
-            previousCases = currentCases;
-            currentCases = regionData[i][caseIndex];
-            weeklyCaseData.push([currentCases,currentCases-previousCases]);
-        }
-        day++;
+    for(let i=startDay; i<regionData.length;i+=7){//grab weekly cases for every last day of a week
+        previousCases = currentCases;
+        currentCases = regionData[i][caseIndex];
+        weeklyCaseData.push([currentCases,currentCases-previousCases]);
+
     }
     return;
 }
 
-function monthlyNewCases(){
+function monthlyCases(){
 
     let caseIndex = regionData[0].length-2;
     let previousCases = 0;
     let currentCases = regionData[0][caseIndex];
     let month = regionData[0][0].substr(0,7)
-    let initialMonth = true
 
     for(let i=0; i<regionData.length;i++){
-        if(regionData[i][0].includes(month) === false){
-            month = regionData[i][0].substr(0,7)
+        if(regionData[i][0].includes(month) === false){//grabs case data at the end of each month
+            month = regionData[i-1][0].substr(0,7)
             previousCases = currentCases;
             currentCases = regionData[i][caseIndex];
             monthlyCaseData.push([currentCases,currentCases-previousCases]);
