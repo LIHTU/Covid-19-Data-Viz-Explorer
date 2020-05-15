@@ -4,6 +4,7 @@ let text='';
 let dailyCaseData = [];
 let monthlyCaseData = [];
 let weeklyCaseData = [];
+let counties = []
 
 let USCasesUrl = 'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv';
 let stateUrl = 'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv';
@@ -18,7 +19,8 @@ request.onreadystatechange = function(){
             datArr[i]=datArr[i].split(',')
 
         sortByCol(datArr,1)
-        regionData = regionParse(datArr,'Washington',1)
+        
+        regionData = regionParse(datArr,'Washington',index=1,index_2=)
         weeklyCases()
         weeklyCaseData.forEach(function(line){
             text+=line+"<br/>"
@@ -28,7 +30,19 @@ request.onreadystatechange = function(){
         document.getElementById("response").innerHTML="Unable to connect to link";
     }
 }
-function regionParse(arr,term,index=1){
+function getCounties(){
+    regions = []
+    currentRegion = regionData[0][1]
+    regionData.forEach(function(line){
+        if(line !== currentRegion){
+            regionData.push(currentRegion);
+            currentRegion = regionData[i][1];
+        }
+    })
+    return;
+}
+
+function regionParse(arr,term,index=1,index_2=-1){
     newArray = []
     foundTerm = false
     arr.forEach(function(line){
@@ -37,7 +51,7 @@ function regionParse(arr,term,index=1){
             if(foundTerm == false){foundTerm = true}
 
         }else if(foundTerm == true){ //because the function is sorted by region there is no need to search every line
-            return;
+            return;//have to use return instead of break for forEach function
         }
     })
     return newArray
