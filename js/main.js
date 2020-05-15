@@ -3,6 +3,9 @@ let text='';
 let dailyCaseData = [];
 let monthlyCaseData = [];
 let weeklyCaseData = [];
+let selectedState = null;
+let states = [];
+let statesOptions = "";
 
 let USCasesUrl = 'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv';
 let stateUrl = 'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv';
@@ -15,11 +18,20 @@ request.send();
 request.onreadystatechange = function(){
     if(this.readyState == 4 && this.status == 200){
         datArr = this.responseText.split('\n');
+        
         console.log('datArr', datArr);
         datArr.splice(0, 1) // remove header row
-        for(let i = 0; i < datArr.length; i++){
+        for(let i = 0; i < datArr.length; i++) {
             datArr[i]=datArr[i].split(',');
         }
+        createStateList(datArr);
+        
+        // populate states dropdown
+        states.forEach(function(state){
+            statesOptions += "<option value='"+ state +"'>"+state+"</option>";
+        })
+        document.getElementById("stateSelect").innerHTML=statesOptions;
+
         sortByCol(datArr,1);
         regionData = stateParse(datArr,'Washington',1);
         weeklyCases();
@@ -33,12 +45,19 @@ request.onreadystatechange = function(){
         document.getElementById("weeklyWashingtonTab").innerHTML=tableText;
 
     } else {
-        document.getElementById("weeklyWashington").innerHTML="Unable to connect to link";
+        document.getElementById("weeklyWashingtonTab").innerHTML="Unable to connect to link";
     }
 }
 
 /******************************************************/
-
+function createStateList(stateData) {
+    stateData.forEach(function(rec) {
+        if(states.indexOf(rec[1]) == -1) {
+            states.push(rec[1]);
+        }
+    });
+    states.sort();
+};
 function stateParse(arr,term){
     // filter data by state or county
     regionRecords = []
@@ -72,12 +91,11 @@ function countyParse(arr,term){
     return regionRecords;
 }
 function sortByCol(arr, colIndex=1){
-    arr.sort(sortFunction)
-    function sortFunction(a, b) {
+    arr.sort(function (a, b) {
         a = a[colIndex]
         b = b[colIndex]
         return (a === b) ? 0 : (a < b) ? -1 : 1
-    }
+    })
 }
 
 function dailyCases(){
