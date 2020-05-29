@@ -32,22 +32,16 @@
 
         <div class="medium-6 cell">
           <label>State
-            <select id="stateSelect">
-              <option value="husker">Husker</option>
-              <option value="starbuck">Starbuck</option>
-              <option value="hotdog">Hot Dog</option>
-              <option value="apollo">Apollo</option>
+            <select id="stateSelect" onchange="stateChange()">
+              <option value="None">None</option>
             </select>
           </label>
         </div>
 
         <div class="medium-6 cell">
           <label>County
-            <select>
-              <option value="husker">Husker</option>
-              <option value="starbuck">Starbuck</option>
-              <option value="hotdog">Hot Dog</option>
-              <option value="apollo">Apollo</option>
+            <select id="countySelect" onchange="countyChange()">
+              <option value="None">None</option>
             </select>
           </label>
         </div>
