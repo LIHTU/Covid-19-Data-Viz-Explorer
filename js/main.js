@@ -1,8 +1,5 @@
 let USRecords, stateRecords, countyRecords;
-let text='';
-let selectedState = "";
-let states = [];
-let counties = [];
+let states = counties = [];
 let statesOptions = countyOptions = "";
 let currentState = "None"
 let currentCounty = "None"
@@ -17,6 +14,7 @@ let countyRequest = new XMLHttpRequest();
 let dailyCaseData = [];
 let monthlyCaseData = [];
 let weeklyCaseData = [];
+
 USRequest.open("GET",USCasesUrl,true);
 USRequest.send();
 USRequest.onreadystatechange = function(){
@@ -28,7 +26,7 @@ USRequest.onreadystatechange = function(){
         generateTable(weeklyCaseData)
 
     }else{
-        console.log("Issue with grabbing us records")
+        console.log("Issue with grabbing US records")
     }
 }
 stateRequest.open("GET",stateUrl,true);
@@ -38,7 +36,7 @@ stateRequest.onreadystatechange = function(){
 
         stateRecords = parseNYTData(this.responseText.split('\n'))
 
-        createStateList(stateRecords);
+        states = createOptionList(stateRecords,1);
         
         // populate states dropdown
         states.forEach(function(state){
@@ -48,10 +46,9 @@ stateRequest.onreadystatechange = function(){
 
         //grabing data from a single state
         sortByCol(stateRecords,1);
-        //giving an inital value to state
 
     } else {
-        document.getElementById("weeklyWashingtonTab").innerHTML="Unable to connect to link";
+        console.log("Issue with grabbing state records")
     }
 }
 countyRequest.open("GET",countiesUrl,true);
@@ -62,6 +59,8 @@ countyRequest.onreadystatechange = function(){
         countyRecords = parseNYTData(this.responseText.split('\n'))
         //sorting by state
         sortByCol(countyRecords, colIndex=2);
+    }else {
+        console.log("Issue with grabbing county records")
     }
 }
 
@@ -71,24 +70,24 @@ function stateChange(){
     select = document.getElementById("stateSelect");
     selectedState = getSelectedOption(select).value
     if(currentState != selectedState){
+        //giving an inital value to state
         countyOptions = "<option value='None'>None</option>"
         currentState = selectedState;
         if(selectedState != "None"){
             //grabbing generic cases for a single state
-            stateData = filterByState(stateRecords,currentState,1);
+            stateData = filterByTerm(stateRecords,currentState);
             //grabbing county cases for a single state
-            stateCountyData = filterByState(countyRecords,currentState, index=2);
+            stateCountyData = filterByTerm(countyRecords,currentState, index=2);
             //creating a county list
-            createCountyList();
+            counties = createOptionList(stateCountyData,1);
             //creating dropdown list of counties
-            countyOptions = "<option value='None'>None</option>"
             counties.forEach(function(county){
                 countyOptions += "<option value='"+ county +"'>"+county+"</option>";
             })
             weeklyCases(stateData);
             generateTable(weeklyCaseData)
         }
-        else{
+        else{// display generic US data when no state is selected
             weeklyCases(USRecords);
             generateTable(weeklyCaseData)
         }
@@ -105,11 +104,11 @@ function countyChange(){
             //sort by county
             sortByCol(stateCountyData, colIndex=1);
             //grabs data for specific county
-            countyData = filterByCounty(stateCountyData,selectedCounty);
+            countyData = filterByTerm(stateCountyData,selectedCounty);
 
             weeklyCases(countyData);
             generateTable(weeklyCaseData)
-        }else{
+        }else{// display state only data when no county is selected
             weeklyCases(stateData);
             generateTable(weeklyCaseData)
         }
@@ -118,69 +117,45 @@ function countyChange(){
 
 /******************************************************/
 function parseNYTData(rawData){
-        
+    
     rawData.splice(0, 1) // remove header row
-    for(let i = 0; i < rawData.length; i++) {
+
+    for(let i = 0; i < rawData.length; i++) { // store each word separated by , as a separate string
         rawData[i]=rawData[i].split(',');
     }
     return rawData
 }
 
-function createStateList(stateData) {
-
-    states = []
-    stateData.forEach(function(rec) {
-        if(states.indexOf(rec[1]) == -1) {
-            states.push(rec[1]);
-        }
-    });
-    states.sort();
-};
-function createCountyList(){
+function createOptionList(data, index){
     
-    counties = []
-    stateCountyData.forEach(function(rec) {
-        countyRec=rec[1]
-        if(countyRec !='Unknown'){
-            if(counties.indexOf(countyRec) == -1) {
-                counties.push(countyRec);
+    optionList = []
+    data.forEach(function(rec) {
+        ref=rec[index]
+        if(ref !='Unknown'){
+            if(optionList.indexOf(ref) == -1) {
+                optionList.push(ref);
             }
         }
     });
-    counties.sort();
+    return optionList.sort();
 }
-function filterByState(arr,term, index = 1){
+
+function filterByTerm(arr,term, index = 1){
     // filter data by state or county
-    regionRecords = []
+    records = []
     foundTerm = false
     arr.forEach(function(line){
         if (line[index].indexOf(term) > -1){
-            regionRecords.push(line)
-            if(foundTerm == false){foundTerm = true}
-
-        }else if(foundTerm == true){ //because the function is pre-sorted by region there is no need to search every line
-            return;
-        }
-    })
-    console.log('regionRecords', regionRecords);
-    return regionRecords;
-}
-function filterByCounty(arr,term){
-    // filter data by state or county
-    regionRecords = []
-    foundTerm = false
-    arr.forEach(function(line){
-        if (line[1].indexOf(term) > -1){
-            regionRecords.push(line)
+            records.push(line)
             if(foundTerm == false){foundTerm = true}
 
         }else if(foundTerm == true){ //because the function is pre-sorted by region there is no need to search every line
             return;//have to use return instead of break for forEach function
         }
     })
-    console.log('regionRecords', regionRecords);
-    return regionRecords;
+    return records;
 }
+
 function sortByCol(arr, colIndex=1){
     arr.sort(function (a, b) {
         a = a[colIndex]
@@ -194,7 +169,6 @@ function getSelectedOption(sel) {
     for ( var i = 0, len = sel.options.length; i < len; i++ ) {
         opt = sel.options[i];
         if ( opt.selected === true ) {
-            console.log(sel.options.length)
             break;
         }
     }
@@ -263,5 +237,5 @@ function generateTable(caseData){
     });
 
     tableText+="</table>";
-    document.getElementById("weeklyWashingtonTab").innerHTML=tableText;
+    document.getElementById("weeklyTable").innerHTML=tableText;
 }
